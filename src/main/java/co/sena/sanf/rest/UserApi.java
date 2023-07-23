@@ -19,9 +19,11 @@ public class UserApi {
     @Inject UserService userService;
 
     @GET
-    @Path("/users")
-    public Response getOneUser(String idUser) {
-        return Response.ok().build();
+    @Path("/users/{idUser}")
+    public Response getOneUser(@PathParam("idUser") String idUser) throws DRException {
+        return Response.ok()
+            .entity(userService.getUserRegistered(idUser))
+            .build();
     }
 
     @GET

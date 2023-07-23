@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Meta {
+public class Meta implements Serializable {
 
     @BsonProperty("fechaCreacion")
     private LocalDateTime creationDate;
@@ -24,4 +25,8 @@ public class Meta {
     private String source;
 
     private String ipAddress;
+
+    private String tokenRaw;
+
+    private String type;
 }

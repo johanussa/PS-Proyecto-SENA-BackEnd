@@ -2,23 +2,20 @@ package co.sena.sanf.service;
 
 import co.sena.sanf.domain.Meta;
 import co.sena.sanf.domain.User;
-import co.sena.sanf.domain.UserRegistration;
+import co.sena.sanf.domain.UserRegister;
 import co.sena.sanf.helper.exceptions.DRException;
 import co.sena.sanf.repository.UserRepository;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.quarkus.panache.common.Sort;
 import io.vertx.core.http.HttpServerRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
-import org.bson.Document;
-import org.bson.types.ObjectId;
+import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
 import org.jboss.logging.Logger;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,19 +25,20 @@ import java.util.Optional;
 public class UserService {
 
     @Inject Logger LOG;
-    @Inject MongoClient mongoClient;
     @Inject UserRepository userRepository;
     @Inject jakarta.inject.Provider<HttpServerRequest> httpServerRequestProvider;
 
-    public UserRegistration getUserRegistered(String idUser) {
-        LOG.infof("@getUserRegistered API > Inicia servicio para obtener un usuario registrados");
-//        User fndUser = userRepository.findById(new ObjectId());
-        return null;
+    public UserRegister getUserRegistered(String idUser) throws DRException {
+        LOG.infof("@getUserRegistered API > Inicia servicio para obtener un usuario registrado");
+        Optional<UserRegister> findUser = userRepository.searchUserRegistration(idUser);
+        userExist(findUser.isPresent(), idUser);
+        LOG.infof("@getUserRegistered API > Finaliza servicio para obtener un usuario registrado");
+        return findUser.orElse(null);
     }
 
-    public List<UserRegistration> getAllUsers() throws DRException {
+    public List<UserRegister> getAllUsers() throws DRException {
         LOG.infof("@getUsers API > Inicia servicio para obtener lista de usuarios registrados");
-        List<UserRegistration> listUsers = userRepository.listAll(Sort.descending("meta.fechaCreacion"));
+        List<UserRegister> listUsers = userRepository.listAll(Sort.descending("meta.fechaCreacion"));
 
         verifyListEmpty(listUsers);
         LOG.infof("@getUsers API > Finaliza servicio para obtener lista de usuarios registrados");
@@ -50,7 +48,9 @@ public class UserService {
     public void addOneUser(User user) throws DRException, UnknownHostException {
         LOG.infof("@getUsers API > Inicia servicio para registo de usuario en base de datos con data: %s", user);
         verifyUserExistsToAdd(user.getDocumentNumber());
-        UserRegistration newRegister = UserRegistration.builder()
+        user.setPassword(encryptPassword(user.getPassword()));
+        user.setStatus(false);
+        UserRegister newRegister = UserRegister.builder()
             .meta(
                 Meta.builder()
                     .creationDate(LocalDateTime.now())
@@ -66,47 +66,48 @@ public class UserService {
     }
 
     public void updateOneUser(User user) throws DRException {
+        LOG.infof("@updateOneUser API > Inicia servicio para actualizar un usuario registrado con la data: " +
+            "%s", user);
         String idUser = user.getDocumentNumber();
-        Document dataUser = (Document) getCollection().find(new Document("data.numDocumento", idUser)).first();
+        Optional<UserRegister> dataUser = userRepository.searchUserRegistration(idUser);
+        userExist(dataUser.isPresent(), idUser);
 
-        userExist(dataUser != null, idUser);
-        Document dataUp = new Document();
-        assert dataUser != null;
+        User data = dataUser.orElseThrow().getData();
+        Meta meta = dataUser.orElseThrow().getMeta();
 
-        Document data = dataUser.get("data", Document.class);
-        Document meta = dataUser.get("meta", Document.class);
+        data.setName(user.getName());
+        data.setLastName(user.getLastName());
+        data.setDocumentType(user.getDocumentType());
+        data.setEmail(user.getEmail());
+        data.setPassword(encryptPassword(user.getPassword()));
+        data.setStatus(user.getStatus());
+        meta.setUpdateDate(addUpdateDate(meta));
 
-        data.put("nombre", user.getName());
-        data.put("apellido", user.getLastName());
-        data.put("tipoDocumento", user.getDocumentType());
-        data.put("correo", user.getEmail());
-        data.put("password", user.getPassword());
-        data.put("activo", user.getStatus());
-        meta.put("fechaActualizacion", addUpdateDate(meta));
-
-        dataUp.put("meta", meta);
-        dataUp.put("data", data);
-        getCollection().updateOne(new Document("data.numDocumento", idUser), new Document("$set", dataUp));
+        userRepository.update(dataUser.get());
+        LOG.infof("@updateOneUser API > El usuario de id: %s fue actualizado con exito", idUser);
+        LOG.infof("@updateOneUser API > Finaliza servicio para actualizar un usuario registrado");
     }
 
     public void deleteOneUser(String idUser) throws DRException {
-        Optional<UserRegistration> dataUser = userRepository.searchUserRegistration(idUser);
+        LOG.infof("@deleteOneUser API > Inicia servicio para eliminar un usuario registrado de id: %s", idUser);
+        Optional<UserRegister> dataUser = userRepository.searchUserRegistration(idUser);
         userExist(dataUser.isPresent(), idUser);
-        userRepository.deleteUserRegistration(idUser);
+
+        userRepository.deleteById(dataUser.orElseThrow().getId());
+        LOG.infof("@deleteOneUser API > El usuario de id: %s fue eliminado exitosamente", idUser);
+        LOG.infof("@deleteOneUser API > Finaliza servicio para eliminar un usuario registrado de id: %s", idUser);
     }
-    private List<LocalDateTime> addUpdateDate(Document meta) {
-        List<LocalDateTime> datesAfter = meta.get("fechaActualizacion", List.class);
-        List<LocalDateTime> list = datesAfter.isEmpty() ? new ArrayList<>() : datesAfter;
+    private List<LocalDateTime> addUpdateDate(Meta meta) {
+        LOG.infof("@addUpdateDate API > Inicia servicio para agregar fecha de actualización al registro meta");
+        List<LocalDateTime> datesAfter = meta.getUpdateDate();
+        List<LocalDateTime> list = datesAfter == null ? new ArrayList<>() : datesAfter;
         if (list.size() == 5) list.remove(0);
         list.add(LocalDateTime.now());
+        LOG.infof("@addUpdateDate API > Finaliza servicio para agregar fecha de actualización al registro meta");
         return list;
     }
-    private MongoCollection<?> getCollection(){
-        Dotenv dotenv = Dotenv.configure().load();
-        return mongoClient.getDatabase(dotenv.get("DATABASE")).getCollection(dotenv.get("COLLECTION"));
-    }
 
-    private void verifyListEmpty(List<UserRegistration> list) throws DRException {
+    private void verifyListEmpty(List<UserRegister> list) throws DRException {
         if (list.isEmpty()) {
             LOG.infof("@verifyListEmpty, No se encontraron registros de usuarios en la base de datos");
             throw new DRException(
@@ -132,5 +133,11 @@ public class UserService {
             Response.Status.NOT_FOUND.getStatusCode(),
             "El usuario de id: " + idUser + " NO se encuetra registrado"
         );
+    }
+    private String encryptPassword(String pass) {
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] salt = new byte[16];
+        secureRandom.nextBytes(salt);
+        return OpenBSDBCrypt.generate(pass.toCharArray(), salt, 12);
     }
 }
