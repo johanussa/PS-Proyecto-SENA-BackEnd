@@ -1,8 +1,8 @@
 package co.sena.sanf.service;
 
 import co.sena.sanf.domain.Meta;
-import co.sena.sanf.domain.User;
-import co.sena.sanf.domain.UserRegister;
+import co.sena.sanf.domain.user.User;
+import co.sena.sanf.domain.user.UserRegister;
 import co.sena.sanf.helper.exceptions.DRException;
 import co.sena.sanf.repository.UserRepository;
 import io.quarkus.panache.common.Sort;
@@ -45,11 +45,11 @@ public class UserService {
         return listUsers;
     }
 
-    public void addOneUser(User user) throws DRException, UnknownHostException {
+    public void addOneUser(UserRegister user) throws DRException, UnknownHostException {
         LOG.infof("@getUsers API > Inicia servicio para registo de usuario en base de datos con data: %s", user);
-        verifyUserExistsToAdd(user.getDocumentNumber());
-        user.setPassword(encryptPassword(user.getPassword()));
-        user.setStatus(false);
+        verifyUserExistsToAdd(user.getData().getDocumentNumber());
+        user.getData().setPassword(encryptPassword(user.getData().getPassword()));
+        user.getData().setStatus(false);
         UserRegister newRegister = UserRegister.builder()
             .meta(
                 Meta.builder()
@@ -58,29 +58,29 @@ public class UserService {
                     .ipAddress(InetAddress.getLocalHost().getHostAddress())
                     .build()
             )
-            .data(user)
+            .data(user.getData())
             .build();
         userRepository.persist(newRegister);
         LOG.infof("@getUsers API > El registro del usuario fue exitoso");
         LOG.infof("@getUsers API > Finaliza servicio para registo de usuario en base de datos con data: %s", user);
     }
 
-    public void updateOneUser(User user) throws DRException {
+    public void updateOneUser(UserRegister user) throws DRException {
         LOG.infof("@updateOneUser API > Inicia servicio para actualizar un usuario registrado con la data: " +
             "%s", user);
-        String idUser = user.getDocumentNumber();
+        String idUser = user.getData().getDocumentNumber();
         Optional<UserRegister> dataUser = userRepository.searchUserRegistration(idUser);
         userExist(dataUser.isPresent(), idUser);
 
         User data = dataUser.orElseThrow().getData();
         Meta meta = dataUser.orElseThrow().getMeta();
 
-        data.setName(user.getName());
-        data.setLastName(user.getLastName());
-        data.setDocumentType(user.getDocumentType());
-        data.setEmail(user.getEmail());
-        data.setPassword(encryptPassword(user.getPassword()));
-        data.setStatus(user.getStatus());
+        data.setName(user.getData().getName());
+        data.setLastName(user.getData().getLastName());
+        data.setDocumentType(user.getData().getDocumentType());
+        data.setEmail(user.getData().getEmail());
+        data.setPassword(encryptPassword(user.getData().getPassword()));
+        data.setStatus(user.getData().getStatus());
         meta.setUpdateDate(addUpdateDate(meta));
 
         userRepository.update(dataUser.get());

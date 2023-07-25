@@ -1,8 +1,8 @@
 package co.sena.sanf.rest;
 
-import co.sena.sanf.domain.ClassRoom;
+import co.sena.sanf.domain.program.ProgramRegister;
 import co.sena.sanf.helper.exceptions.DRException;
-import co.sena.sanf.service.ClassRoomService;
+import co.sena.sanf.service.ProgramService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -14,22 +14,22 @@ import java.net.UnknownHostException;
 @Path("/internal")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ClassRoomApi {
+public class ProgramApi {
 
-    @Inject ClassRoomService classRoomService;
+    @Inject ProgramService programService;
 
     @GET
-    @Path("/class-rooms")
-    public Response getClassRooms() throws DRException {
+    @Path("/programs")
+    public Response getListPrograms() throws DRException {
         return Response.ok()
-            .entity(classRoomService.getListClassRooms())
+            .entity(programService.getPrograms())
             .build();
     }
 
     @POST
-    @Path("/class-rooms")
-    public Response createListClassRooms(@Valid ClassRoom classRoom) throws UnknownHostException {
-        classRoomService.addClassRooms(classRoom);
+    @Path("/programs")
+    public Response addListPrograms(@Valid ProgramRegister programRegister) throws UnknownHostException {
+        programService.addPrograms(programRegister);
         return Response.ok()
             .status(Response.Status.CREATED)
             .build();

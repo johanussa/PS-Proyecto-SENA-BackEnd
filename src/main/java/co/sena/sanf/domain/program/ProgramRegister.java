@@ -1,7 +1,8 @@
-package co.sena.sanf.domain;
+package co.sena.sanf.domain.program;
 
-
+import co.sena.sanf.domain.Meta;
 import io.quarkus.mongodb.panache.common.MongoEntity;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,17 +20,17 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@MongoEntity(collection = "SENA_CLASS-ROOMS")
-public class ClassRoom implements Serializable {
+@MongoEntity(collection = "SENA_PROGRAMS")
+public class ProgramRegister implements Serializable {
 
     @Schema(hidden = true)
     private ObjectId id;
 
-    @NotEmpty(message = "La lista de ambientes no puede ser vacia")
-    @NotNull(message = "El campo classRooms (ambientes) no puede ser nulo o vacio")
-    @Size(min = 10, message = "La lista de ambientes debe tener al menos 10 registros")
-    @Schema(example = "[\"QMA Carpintería mecánica\",\"105 Mecanizado\",\"107 Soladura\",\"112 Transversales\"]")
-    private List<String> data;
+    @Valid
+    @NotEmpty(message = "La lista de programas no puede ser vacia")
+    @NotNull(message = "El campo data (programas) no puede ser nulo o vacio")
+    @Size(min = 2, message = "La lista de programas debe tener al menos 2 registros")
+    private List<Program> data;
 
     @Schema(hidden = true)
     private Meta meta;

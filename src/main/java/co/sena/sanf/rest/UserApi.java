@@ -1,6 +1,6 @@
 package co.sena.sanf.rest;
 
-import co.sena.sanf.domain.User;
+import co.sena.sanf.domain.user.UserRegister;
 import co.sena.sanf.helper.exceptions.DRException;
 import co.sena.sanf.service.UserService;
 import jakarta.inject.Inject;
@@ -36,14 +36,14 @@ public class UserApi {
 
     @POST
     @Path("/users")
-    public Response createUser(@Valid User user) throws DRException, UnknownHostException {
+    public Response createUser(@Valid UserRegister user) throws DRException, UnknownHostException {
         userService.addOneUser(user);
         return Response.ok().status(Response.Status.CREATED).build();
     }
 
     @PUT
     @Path("/users")
-    public Response updateUser(@Valid User user) throws DRException {
+    public Response updateUser(@Valid UserRegister user) throws DRException {
         userService.updateOneUser(user);
         return Response.ok()
             .status(Response.Status.NO_CONTENT)

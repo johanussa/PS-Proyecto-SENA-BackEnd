@@ -1,6 +1,6 @@
 package co.sena.sanf.rest;
 
-import co.sena.sanf.domain.ResultRegister;
+import co.sena.sanf.domain.result.ResultRegister;
 import co.sena.sanf.service.ResultService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
