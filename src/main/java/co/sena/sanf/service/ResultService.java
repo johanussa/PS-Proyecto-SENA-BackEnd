@@ -1,12 +1,11 @@
 package co.sena.sanf.service;
 
 import co.sena.sanf.domain.Meta;
-import co.sena.sanf.domain.ResultRegister;
+import co.sena.sanf.domain.result.ResultRegister;
 import co.sena.sanf.repository.ResultsRepository;
 import io.vertx.core.http.HttpServerRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.bson.types.ObjectId;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

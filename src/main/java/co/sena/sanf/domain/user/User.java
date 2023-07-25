@@ -1,5 +1,7 @@
-package co.sena.sanf.domain;
+package co.sena.sanf.domain.user;
 
+import co.sena.sanf.domain.DocumentTypes;
+import co.sena.sanf.domain.RolTypes;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
@@ -43,16 +45,19 @@ public class User implements Serializable {
     private DocumentTypes documentType;
 
     @BsonProperty("numDocumento")
+    @Schema(example = "12345678ABC")
     @NotBlank(message = "El campo documentNumber (número documento) no puede ser nulo o vacio")
     @Length(min = 7, max = 16, message = "El campo número documento debe contener minimo 7 y maximo 16 caracteres")
     @Pattern(regexp = REXDOC, message = "El campo número documento no puede contener espacios o caracteres especiales")
     private String documentNumber;
 
     @BsonProperty("correo")
+    @Schema(example = "correo@misena.edu.co")
     @NotBlank(message = "El campo email (correo) no puede ser nulo o vacio")
     @Pattern(regexp = REXEMAIL, message = "El campo email (correo) debe ser de dominio misena, soy.sena o sena")
     private String email;
 
+    @Schema(example = "9H7z8guBeASj46Y")
     @NotBlank(message = "El campo password (contraseña) no puede ser nulo o vacio")
     @Length(min = 8, max = 20, message = "El campo password (contraseña) debe contener minimo 8 y maximo 20 caracteres")
     private String password;
@@ -61,6 +66,7 @@ public class User implements Serializable {
     @NotNull(message = "El campo rol no puede ser nulo o vacio")
     private RolTypes rol;
 
+    @Schema(hidden = true)
     @BsonProperty("activo")
     private Boolean status;
 }

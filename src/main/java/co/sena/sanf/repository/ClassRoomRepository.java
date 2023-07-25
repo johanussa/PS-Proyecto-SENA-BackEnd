@@ -5,10 +5,12 @@ import io.quarkus.mongodb.panache.PanacheMongoRepository;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.Optional;
+
 @ApplicationScoped
 public class ClassRoomRepository implements PanacheMongoRepository<ClassRoom> {
 
-    public ClassRoom getList() {
-        return findAll(Sort.descending("meta.fechaCreacion")).firstResult();
+    public Optional<ClassRoom> getList() {
+        return findAll(Sort.descending("meta.fechaCreacion")).firstResultOptional();
     }
 }
