@@ -1,7 +1,7 @@
 package co.sena.sanf.domain.user;
 
-import co.sena.sanf.domain.DocumentTypes;
-import co.sena.sanf.domain.RolTypes;
+import co.sena.sanf.domain.enums.DocumentTypes;
+import co.sena.sanf.domain.enums.RolTypes;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
