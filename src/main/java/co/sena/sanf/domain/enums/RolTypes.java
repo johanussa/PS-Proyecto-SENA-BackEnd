@@ -1,4 +1,4 @@
-package co.sena.sanf.domain;
+package co.sena.sanf.domain.enums;
 
 public enum RolTypes {
 
